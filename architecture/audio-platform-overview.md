@@ -4,9 +4,9 @@ High-level components, relationships, and data flow. For implementation details,
 
 ## Detailed Data Documentation
 
-- [Database and Relations](database-and-relations.md)
-- [DTO Catalog and Mapping](../features/dto-catalog-and-mapping.md)
-- [Database and DTO Gap Report](../reports/database-dto-gap-report.md)
+- Database relationships and rationale: `architecture/database-and-relations.md`
+- DTO catalog and mapping: `features/dto-catalog-and-mapping.md`
+- Open gaps and priorities: `reports/database-dto-gap-report.md`
 
 ## Three clusters and seven pipeline steps (target architecture)
 

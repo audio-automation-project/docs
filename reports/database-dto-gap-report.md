@@ -8,9 +8,9 @@ Add one row per gap and keep impact, risk, and owner fields specific and actiona
 
 | Gap | Impact | Risk Type | Suggested Fix | Owner Domain | Priority | Evidence |
 |---|---|---|---|---|---|---|
-| `audiobook` nullable and legacy fields are not represented consistently in API DTO contracts | Clients can drop or mis-serialize title/author and publication metadata during create/update operations | Data integrity and backward compatibility | Define a canonical `AudiobookDto` contract with explicit nullability and migration notes, then align request/response mappers | Core API + Data model | P0 | [E1: entity field scan], [E2: DTO mismatch trace], [E3: mapper behavior check] |
-| `audio_description` processing status fields are not fully mapped to outward DTOs | UI and orchestration workers cannot reliably identify processing lifecycle state | Workflow orchestration risk | Extend DTOs with normalized status enum and timestamps sourced from persistence model | Production pipeline API | P1 | [E4: persistence model review], [E5: response payload sample] |
-| `media_group` / `media_item` relationship metadata is partially flattened in transfer DTOs | Telegram/media workflows lose grouping semantics across service boundaries | Functional regression in media publishing paths | Add nested DTO projection for group-to-item relations and update serializers | Acquisition + Distribution integration | P2 | [E6: relation model inspection], [E7: serialization contract check] |
+| `audiobook` nullable and legacy fields are not represented consistently in API DTO contracts | Clients can drop or mis-serialize title/author and publication metadata during create/update operations | Data integrity and backward compatibility | Define a canonical `AudiobookDto` contract with explicit nullability and migration notes, then align request/response mappers | Core API + Data model | P0 | `Verified in code`: `audio-library-automation-bot/src/main/java/kg/automation/rest/automatation/library/service/AudiobookLibraryService.java` (`applyDto`, `toDto`, `mergeForUpdate`); `Verified in code`: `audio-library-automation-bot/src/main/java/kg/automation/rest/automatation/library/web/AudiobookV1Controller.java` (`create`, `update`) |
+| `audio_description` processing status fields are not fully mapped to outward DTOs | UI and orchestration workers cannot reliably identify processing lifecycle state | Workflow orchestration risk | Extend DTOs with normalized status enum and timestamps sourced from persistence model | Production pipeline API | P1 | `Verified in code`: `audio-library-automation-bot/src/main/java/kg/automation/rest/automatation/library/service/AudioDescriptionPersistenceService.java`; `Inferred from docs`: `architecture/audio-platform-overview.md` (`Owned data` mentions `audio_description` staging fields); `Missing in current workspace`: dedicated outward DTO contract for `audio_description` status lifecycle |
+| `media_group` / `media_item` relationship metadata is partially flattened in transfer DTOs | Telegram/media workflows lose grouping semantics across service boundaries | Functional regression in media publishing paths | Add nested DTO projection for group-to-item relations and update serializers | Acquisition + Distribution integration | P2 | `Verified in code`: `audio-library-automation-bot/src/main/java/kg/automation/rest/automatation/library/service/JsonMediaGroupImportService.java` (`media_groups.json` import via `MediaGroupRepository`); `Verified in code`: `audio-library-automation-bot/src/main/java/kg/automation/rest/automatation/telegram/service/AudioLibraryService.java` (`toMediaGroupEntity` usage path); `Missing in current workspace`: explicit `MediaGroupDto`/`MediaItemDto` transfer schema in docs-repo |
 
 ## Execution Order
 Prioritize fixes by delivery sequence so teams can execute from low-risk to structural work.
@@ -23,7 +23,7 @@ flowchart LR
 
 ### Quick Wins
 - Lock the canonical `AudiobookDto` schema and mapper behavior behind one contract test suite.
-- Publish evidence labels (`E1`-`E3`) in PR descriptions for each P0 fix.
+- Publish traceable evidence pointers (`Verified in code`, `Inferred from docs`, `Missing in current workspace`) in PR descriptions for each P0 fix.
 
 ### Medium
 - Introduce DTO status normalization for `audio_description` and align consumer expectations.
