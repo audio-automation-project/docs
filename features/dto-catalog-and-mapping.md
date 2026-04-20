@@ -21,7 +21,7 @@ DTOs/models currently used by runtime paths.
 
 | DTO/Model | Purpose | Producer | Consumer | Source/Sink | Stability | Status | Evidence |
 |---|---|---|---|---|---|---|---|
-| AudiobookDto | API payload for audiobook CRUD operations | AudiobookV1Controller | AudiobookLibraryService | HTTP JSON request/response mapped to SQL audiobook rows and Firestore sync payloads | Evolving | Active | Verified in code |
+| AudiobookDto | API payload for audiobook CRUD | AudiobookV1Controller | AudiobookLibraryService | PostgreSQL audiobook rows | Evolving | Active | Verified in code |
 
 ## Legacy
 DTOs/models retained for backward compatibility.
@@ -41,14 +41,9 @@ Objects with unclear ownership or missing verification evidence.
 
 ```mermaid
 graph TD
-  API[Audiobook API DTO]
-  SVC[Audiobook service mapping layer]
-  SQL[(SQL database)]
-  FS[(Firestore)]
-
-  API --> SVC
-  SVC --> SQL
-  SVC --> FS
+  API[AudiobookV1Controller DTO] --> SVC[AudiobookLibraryService DTO->Entity mapping]
+  SVC --> SQL[(PostgreSQL)]
+  SVC --> FS[FirestoreSyncService]
 ```
 
 ## Boundary Rules
