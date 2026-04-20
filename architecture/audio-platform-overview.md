@@ -4,16 +4,16 @@ High-level components, relationships, and data flow. For implementation details,
 
 ## Detailed Data Documentation
 
-- Database relationships and rationale: `architecture/database-and-relations.md`
-- DTO catalog and mapping: `features/dto-catalog-and-mapping.md`
-- Open gaps and priorities: `reports/database-dto-gap-report.md`
+- Database relationships and rationale: [Database and Relations](./database-and-relations.md)
+- DTO catalog and mapping: [DTO Catalog and Mapping](../features/dto-catalog-and-mapping.md)
+- Open gaps and priorities: [Database DTO Gap Report](../reports/database-dto-gap-report.md)
 
 ## Three clusters and seven pipeline steps (target architecture)
 
 
 ### Internal cluster APIs (target)
 
-When services run as separate processes, cluster-to-cluster calls use **`/internal/**`** endpoints only on trusted networks. Normative details (token, correlation ID, `schemaVersion`, idempotency) are documented in [`docs/superpowers/plans/2026-04-01-cluster-services-split-and-hardening.md`](../superpowers/plans/2026-04-01-cluster-services-split-and-hardening.md).
+When services run as separate processes, cluster-to-cluster calls use **`/internal/**`** endpoints only on trusted networks. Normative details (token, correlation ID, `schemaVersion`, idempotency) are documented in [Database DTO Documentation Implementation Plan](../superpowers/plans/2026-04-20-database-dto-documentation-implementation-plan.md) and [Database DTO Documentation Design Spec](../superpowers/specs/2026-04-20-database-dto-documentation-design.md).
 
 - **`/internal/**`** must not be exposed on a public ingress without authentication (e.g. shared secret `X-Internal-Token`, optional mTLS).
 - **`X-Correlation-Id`** (or W3C `traceparent`) on every internal request for log correlation.
@@ -54,59 +54,12 @@ Under `kg.automation.rest.automatation`: **A** — `search`, `torrent`, `library
 
 ### Data ownership (target)
 
-## Database and Firebase credentials
+## Data and persistence at a glance
 
-**PostgreSQL** is the authoritative store for relational data. **Firestore** (via Firebase Admin) is an optional projection when sync is enabled. Secrets **must not** be committed. Use environment variables (or a local `application-local.properties` / `.env` that is gitignored). A commented template lives at `audio-library-automation-bot/env.example`. Step-by-step setup and verification\
-
-| Concern | Variables / files | Notes |
-|--------|-------------------|--------|
-| PostgreSQL (monolith) | `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD` | Matches `docker compose` defaults in `audio-library-automation-bot` when using local Postgres. |
-| PostgreSQL (cluster JAR) | `DATABASE_URL`, `DATABASE_USERNAME` (or `DATABASE_USER`), `DATABASE_PASSWORD` | `audio-library-service` prefers `DATABASE_USERNAME` and accepts `DATABASE_USER` as fallback — same DB credentials as the monolith if both point at one instance. |
-| Firebase Admin | `GOOGLE_APPLICATION_CREDENTIALS`, `FIREBASE_PROJECT_ID`, optional `FIREBASE_ENABLED` | Path to a **downloaded service account JSON**; add filename patterns to `.gitignore` (see repo root and `audio-library-automation-bot/.gitignore`). |
-| Internal cluster APIs | `INTERNAL_API_TOKEN` | For manual multi-process testing; see cluster hardening plan. |
-
-**CI / Railway:** Configure the same variables as **encrypted** secrets in the deployment environment; never paste keys into the repo or public logs.
-
-```mermaid
-flowchart TB
-  subgraph env["Environment / secrets store"]
-    PG["PostgreSQL URL + user + password"]
-    FB["GOOGLE_APPLICATION_CREDENTIALS path"]
-    TOK["INTERNAL_API_TOKEN optional"]
-  end
-  subgraph apps["Applications"]
-    M["audio-library-automation-bot"]
-    P["audio-library-production-service"]
-  end
-  PG --> M
-  PG --> P
-  FB --> M
-```
-
-### Cluster boundary: Acquisition (A)
-
-- **Owned data (relational):** `audiobook` rows created or updated during ingest; `parsed_book`; `media_group` / `media_item` when sourced from Telegram; `audio_description` fields that describe **staging** (paths, workspace, torrent-related fields).
-- **Outbound to B:** after staging, a **production job** should reference the same payload as in the plan (`audiobookId`, `stagedAudioPaths`, `workspaceDirectory`, `idempotencyKey`). The idempotency key should be derived from **staging version** (e.g. hash of paths + sizes or a monotonic job id per workspace) so retries do not duplicate work.
-- **Anti-patterns:** Acquisition code must **not** depend on `..video..`, image generators for final posters tied to render, or Boosty/YouTube uploaders.
-
-
-
-## SQL persistence (audiobooks)
-
-```mermaid
-flowchart LR
-    C[HTTP client] --> V1[AudiobookV1Controller]
-    L[Legacy BotController] --> SVC[AudiobookLibraryService]
-    V1 --> SVC
-    SVC --> REPO[AudiobookRepository]
-    REPO --> PG[(PostgreSQL)]
-    IMP[JsonAudiobookImportService\nApplicationRunner] -->|if table empty + file exists| LEG[audiobooks.json under AUDIO_BASE_PATH]
-    IMP --> SVC
-```
-
-- **Local without Docker:** `spring.profiles.active=dev` (or `h2`) uses in-memory H2 with Hibernate `ddl-auto=update` and Flyway off — for quick runs only; parity with production schema is validated by PostgreSQL tests when Docker is available (`AudiobookRepositoryPostgresIT`).
-- **Media groups** (Telegram album flow), **audio descriptions** (per workspace), **parsed books** (scraper metadata), and **AI trace payloads** (Ollama / image request/response) are stored in PostgreSQL (Flyway `V2`–`V5`). Legacy `media_groups.json` / `description.json` can be imported when enabled via `application.properties` migration flags.
-- **Firebase** (optional): set `FIREBASE_ENABLED=true` and `GOOGLE_APPLICATION_CREDENTIALS` to a service account JSON (see `env.example`). For **Firestore** read models, set `FIREBASE_FIRESTORE_SYNC=true` (and optionally `FIREBASE_FIRESTORE_COLLECTION`); `AudiobookLibraryService` upserts/deletes documents `audiobooks/{id}` after SQL commit (async), with PostgreSQL as the source of truth.
+- PostgreSQL is the source of truth for relational entities used across acquisition, production, and distribution.
+- Firebase/Firestore is an optional projection layer used by selected read paths when sync is enabled.
+- Credentials, environment variable matrices, and low-level persistence mechanics are intentionally documented in detailed docs, not in this overview.
+- For schema detail and rationale, see [Database and Relations](./database-and-relations.md), [DTO Catalog and Mapping](../features/dto-catalog-and-mapping.md), and [Database DTO Gap Report](../reports/database-dto-gap-report.md).
 
 ## Phase 2 (optional, out of current scope)
 

@@ -32,3 +32,11 @@ flowchart LR
 ### Structural
 - Replace flattened media transfer payloads with relation-preserving DTOs.
 - Roll out relation DTO versioning with compatibility adapters for existing clients.
+
+## Definition of done for this pass
+
+- DTO catalog is exhaustive within currently available evidence sources and includes all currently referenced core types, with `Active`, `Legacy`, and `Unknown/Unverified` status labeling plus evidence tags per row.
+- Architecture overview keeps only high-level data/persistence guidance and links to detailed documentation instead of embedding low-level credential matrices or SQL persistence internals.
+- Internal cluster API references in the overview point to valid, current plan/spec paths under `docs-repo/superpowers`.
+- Detailed Data Documentation entries in the overview use clickable markdown links for architecture, feature, and report documents.
+- Gap report findings remain evidence-backed and prioritized, with this definition-of-done section explicitly capturing pass completion criteria aligned to the documentation spec intent.
