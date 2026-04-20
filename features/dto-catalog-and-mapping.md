@@ -1,9 +1,9 @@
 # DTO Catalog and Mapping
 
 ## Purpose
-Describe which DTOs are in scope for this feature area and how they map to current implementation status.
+Describe which DTOs/models are in scope for this feature area and how they map across API, service, and persistence boundaries.
 
-This document catalogs all data transfer objects (DTOs) related to the audio library pipeline and marks their current status.
+This document catalogs DTO/model transfer objects related to the audio library pipeline, grouped by lifecycle status with explicit evidence labels.
 
 ## Evidence Labels
 Use one evidence label per row so readers can quickly validate each claim.
@@ -14,13 +14,44 @@ Use one evidence label per row so readers can quickly validate each claim.
 - `Missing in current workspace`
 
 ## Status Groups
-Use these sections to group DTO entries by lifecycle state.
+Use these sections to group DTO/model entries by lifecycle state.
 
 ## Active
-List DTOs currently used by runtime paths and include mapping/source notes.
+DTOs/models currently used by runtime paths.
+
+| DTO/Model | Purpose | Producer | Consumer | Source/Sink | Stability | Status | Evidence |
+|---|---|---|---|---|---|---|---|
+| AudiobookDto | API payload for audiobook CRUD operations | AudiobookV1Controller | AudiobookLibraryService | HTTP JSON request/response mapped to SQL audiobook rows and Firestore sync payloads | Evolving | Active | Verified in code |
 
 ## Legacy
-List DTOs kept for backward compatibility and note planned retirement timelines.
+DTOs/models retained for backward compatibility.
+
+| DTO/Model | Purpose | Producer | Consumer | Source/Sink | Stability | Status | Evidence |
+|---|---|---|---|---|---|---|---|
+| LegacyAudiobookPayload | Backward-compatible ingest payload from older integrations | LegacyImportAdapter | CompatibilityMappingService | Legacy import feed to compatibility mapping layer | Deprecated | Legacy | Inferred from docs |
 
 ## Unknown/Unverified
-List DTOs with unclear ownership or evidence gaps and add follow-up actions.
+Objects with unclear ownership or missing verification evidence.
+
+| DTO/Model | Purpose | Producer | Consumer | Source/Sink | Stability | Status | Evidence |
+|---|---|---|---|---|---|---|---|
+| UnknownAudiobookRecord | Candidate transfer object referenced in notes but not verified in current modules | Unknown | Unknown | Unknown/Unverified mapping path pending code trace | Unknown | Unknown/Unverified | Missing in current workspace |
+
+## Mapping Flow
+
+```mermaid
+graph TD
+  API[Audiobook API DTO]
+  SVC[Audiobook service mapping layer]
+  SQL[(SQL database)]
+  FS[(Firestore)]
+
+  API --> SVC
+  SVC --> SQL
+  SVC --> FS
+```
+
+## Boundary Rules
+
+- API DTOs must not be reused as persistence entities.
+- Unknown/unverified objects remain labeled until code evidence is found.
