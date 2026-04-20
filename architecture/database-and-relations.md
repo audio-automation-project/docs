@@ -1,7 +1,7 @@
 # Database and Relations
 
 This document is the evidence-driven architecture reference for core relational entities and their cross-domain handoffs.
-It is aligned with the approved design in `superpowers/specs/2026-04-20-database-dto-documentation-design.md` and the high-level architecture in `architecture/audio-platform-overview.md`.
+It is aligned with the approved design in `../superpowers/specs/2026-04-20-database-dto-documentation-design.md` and the high-level architecture in `audio-platform-overview.md`.
 
 ## Evidence Labels
 
@@ -19,7 +19,7 @@ The platform is organized into four data domains to match lifecycle ownership an
 | Catalog (Acquisition) | Ingest and maintain canonical audiobook metadata | `audiobook`, `parsed_book` | `Inferred from docs` |
 | Processing (Production) | Maintain staging/processing metadata for audio and AI operations | `audio_description`, `ai_integration_log` | `Inferred from docs` |
 | Distribution (Publication) | Build publish-ready artifacts and post state | publish package data, platform posting state | `Inferred from docs` |
-| Projection (Firebase/Read model) | Optional external read projection from SQL source of truth | Firestore `audiobooks/{id}` projection | `Verified in config` |
+| Projection (Firebase/Read model) | Optional external read projection from SQL source of truth | Firestore `audiobooks/{id}` projection (`audio-platform-overview.md`: `FIREBASE_FIRESTORE_SYNC`; `AudiobookLibraryService` upserts/deletes docs after SQL commit) | `Verified in config` |
 
 ```mermaid
 erDiagram
@@ -87,7 +87,7 @@ flowchart LR
 | `audiobook -> media_group` | Associate Telegram/media album-level entities to title | `Missing in current workspace` | `Inferred from docs` | Doc references media groups in PostgreSQL. |
 | `media_group -> media_item` | Represent one-to-many items inside a media group | `Missing in current workspace` | `Inferred from docs` | Relationship implied by naming and ingestion flow. |
 | `audiobook -> ai_integration_log` | Link AI requests/responses to audiobook trace context | `Missing in current workspace` | `Inferred from docs` | Flyway mention exists in overview, DDL not available here. |
-| `audiobook -> Firestore projection` | Project SQL source-of-truth rows to read model | Not a DB FK; async application-level sync | `Verified in config` | Overview explicitly states SQL commit followed by async projection update. |
+| `audiobook -> Firestore projection` | Project SQL source-of-truth rows to read model | Not a DB FK; async application-level sync | `Verified in config` | Source pointer: `audio-platform-overview.md` (`FIREBASE_FIRESTORE_SYNC`; `AudiobookLibraryService` async upserts/deletes `audiobooks/{id}` after SQL commit). |
 
 ## Relationship Rationale
 
@@ -96,18 +96,18 @@ flowchart LR
 - `audio_description` linkage (`Inferred from docs`): workspace paths and stage metadata must be associated with the same audiobook to preserve idempotent retries and production handoff continuity.
 - `media_group` and `media_item` linkage (`Inferred from docs`): Telegram/media album handling requires group-to-item containment and audiobook association to avoid orphaned assets.
 - `ai_integration_log` linkage (`Inferred from docs`): AI image/audio/text request traces need stable content ownership for debugging and reprocessing.
-- Firestore projection from SQL (`Verified in config`): keeping PostgreSQL authoritative with async projection avoids dual-write authority conflicts while supporting read-oriented consumers.
+- Firestore projection from SQL (`Verified in config`): keeping PostgreSQL authoritative with async projection avoids dual-write authority conflicts while supporting read-oriented consumers (`audio-platform-overview.md`: `FIREBASE_FIRESTORE_SYNC`, `AudiobookLibraryService`).
 
 ## Constraint and Index Backlog
 
 The following backlog focuses on physical enforcement gaps that are logical requirements in current architecture docs.
 
-| Backlog item | Why needed | Priority | Current evidence |
-|---|---|---|---|
-| Add explicit FK from child tables to `audiobook.id` where expected | Prevent orphan processing/catalog records and improve join correctness | P0 | `Missing in current workspace` |
-| Add explicit FK from `media_item.media_group_id` to `media_group.id` | Enforce album integrity and cascade behavior strategy | P0 | `Missing in current workspace` |
-| Define uniqueness/idempotency keys for processing job linkage by audiobook/workspace | Prevent duplicate processing artifacts on retries | P1 | `Inferred from docs` |
-| Add lookup indexes for high-frequency joins (`audiobook_id`, `media_group_id`) | Improve query performance across acquisition and production joins | P1 | `Missing in current workspace` |
-| Document projection consistency contract (SQL commit -> async Firestore sync) with retry semantics | Make eventual consistency behavior explicit and testable | P2 | `Verified in config` |
+| Backlog item | Why needed | Priority | Current evidence | Owner | Verification check | Target artifact |
+|---|---|---|---|---|---|---|
+| Add explicit FK from child tables to `audiobook.id` where expected | Prevent orphan processing/catalog records and improve join correctness | P0 | `Missing in current workspace` | DB maintainer | Migration applies cleanly and FK metadata appears in schema introspection | Flyway migration (`Vx__add_audiobook_foreign_keys.sql`) |
+| Add explicit FK from `media_item.media_group_id` to `media_group.id` | Enforce album integrity and cascade behavior strategy | P0 | `Missing in current workspace` | DB maintainer | FK exists and referential action matches lifecycle policy (restrict/cascade) | Flyway migration (`Vx__add_media_group_item_fk.sql`) |
+| Define uniqueness/idempotency keys for processing job linkage by audiobook/workspace | Prevent duplicate processing artifacts on retries | P1 | `Inferred from docs` | Production service owner | Duplicate replay attempt is rejected or no-op with deterministic key | Migration + service validation path (`audio-library-production-service`) |
+| Add lookup indexes for high-frequency joins (`audiobook_id`, `media_group_id`) | Improve query performance across acquisition and production joins | P1 | `Missing in current workspace` | DB maintainer | `EXPLAIN` plan prefers index scan for representative join predicates | Flyway migration (`Vx__add_relation_lookup_indexes.sql`) |
+| Document projection consistency contract (SQL commit -> async Firestore sync) with retry semantics | Make eventual consistency behavior explicit and testable | P2 | `Verified in config` (`audio-platform-overview.md`: `FIREBASE_FIRESTORE_SYNC`, `AudiobookLibraryService`) | Architecture owner | Contract doc includes trigger point, retry/backoff policy, and failure-state handling checklist | `architecture/database-and-relations.md` + projection implementation note |
 
 Backlog execution should be coordinated with migration ownership in the reporting document to avoid drift between logical architecture and physical schema.
