@@ -3,7 +3,7 @@
 ## Purpose
 Describe which DTOs/models are in scope for this feature area and how they map across API, service, and persistence boundaries.
 
-This document catalogs DTO/model transfer objects related to the audio library pipeline, grouped by lifecycle status with explicit evidence labels.
+This document catalogs data transfer objects related to the audio library pipeline, grouped by lifecycle status with explicit evidence labels.
 
 ## Evidence Labels
 Use one evidence label per row so readers can quickly validate each claim.
@@ -28,16 +28,18 @@ DTOs/models retained for backward compatibility.
 
 | DTO/Model | Purpose | Producer | Consumer | Source/Sink | Stability | Status | Evidence |
 |---|---|---|---|---|---|---|---|
-| LegacyAudiobookPayload | Backward-compatible ingest payload from older integrations | LegacyImportAdapter | CompatibilityMappingService | Legacy import feed to compatibility mapping layer | Deprecated | Legacy | Inferred from docs |
+| LegacyAudiobookPayload | Backward-compatible ingest payload from older integrations | LegacyImportAdapter | CompatibilityMappingService | Legacy import feed to compatibility mapping layer | Deprecated candidate | Legacy | Inferred from docs |
 
 ## Unknown/Unverified
 Objects with unclear ownership or missing verification evidence.
 
 | DTO/Model | Purpose | Producer | Consumer | Source/Sink | Stability | Status | Evidence |
 |---|---|---|---|---|---|---|---|
-| UnknownAudiobookRecord | Candidate transfer object referenced in notes but not verified in current modules | Unknown | Unknown | Unknown/Unverified mapping path pending code trace | Unknown | Unknown/Unverified | Missing in current workspace |
+| UnknownAudiobookRecord | Candidate transfer object referenced in notes but not verified in current modules | Unknown | Unknown | Unknown/Unverified mapping path pending code trace | Evolving | Unknown/Unverified | Missing in current workspace |
 
 ## Mapping Flow
+
+Note: The `Source/Sink` column identifies the primary sink for each DTO/model. Secondary projection paths are represented in the mapping diagram.
 
 ```mermaid
 graph TD
