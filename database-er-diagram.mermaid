@@ -1,0 +1,148 @@
+erDiagram
+    cycles {
+        BIGINT id PK
+        VARCHAR cycleIdentifier UK
+        VARCHAR title
+        VARCHAR author
+        ENUM status "PENDING|SEARCHING|DOWNLOADING|PROCESSING_AUDIO|PROCESSING_IMAGE|PROCESSING_VIDEO|POSTING|COMPLETED|FAILED"
+        TEXT cycleDescription
+        TIMESTAMP createdAt
+        TIMESTAMP updatedAt
+    }
+
+    audio_parts {
+        BIGINT id PK
+        BIGINT cycle_id FK
+        INT partNumber
+        VARCHAR title
+        BIGINT durationSeconds
+        VARCHAR originalChaptersPath
+        VARCHAR concatenatedAudioPath
+        VARCHAR trimmedAudioPath
+        VARCHAR compressedAudioPath
+        ENUM processingStatus "PENDING|IN_PROGRESS|COMPLETED|FAILED"
+        TIMESTAMP createdAt
+        TIMESTAMP updatedAt
+    }
+
+    video_parts {
+        BIGINT id PK
+        BIGINT cycle_id FK
+        INT partNumber
+        VARCHAR videoPath
+        VARCHAR preRenderedSegmentPath
+        BIGINT durationSeconds
+        ENUM processingStatus "PENDING|IN_PROGRESS|COMPLETED|FAILED"
+        TIMESTAMP createdAt
+        TIMESTAMP updatedAt
+    }
+
+    image_parts {
+        BIGINT id PK
+        BIGINT cycle_id FK
+        INT partNumber
+        VARCHAR imageType "cover_art|base_ai_cover|thumbnail"
+        VARCHAR imagePath
+        VARCHAR sourcePrompt
+        TIMESTAMP createdAt
+    }
+
+    torrent_tasks {
+        BIGINT id PK
+        BIGINT cycle_id FK
+        VARCHAR torrentHash UK
+        VARCHAR torrentName
+        VARCHAR downloadPath
+        ENUM status "PENDING|DOWNLOADING|STALLED_UP|COMPLETED|FAILED|DELETED_FROM_CLIENT"
+        TIMESTAMP addedOn
+        TIMESTAMP completedOn
+    }
+
+    scraped_books {
+        BIGINT id PK
+        BIGINT cycle_id FK
+        VARCHAR title
+        VARCHAR author
+        VARCHAR reader
+        VARCHAR year
+        VARCHAR genre
+        VARCHAR cycleName
+        VARCHAR cyclePart
+        TEXT description
+        VARCHAR sourceUrl
+        VARCHAR torrentUrl
+        TIMESTAMP scrapedAt
+    }
+
+    ai_generated_content {
+        BIGINT id PK
+        BIGINT cycle_id FK
+        ENUM contentType "TEXT|IMAGE|DESCRIPTION"
+        VARCHAR model
+        TEXT prompt
+        TEXT result
+        TIMESTAMP createdAt
+    }
+
+    distribution_records {
+        BIGINT id PK
+        BIGINT cycle_id FK
+        BIGINT audio_part_id FK
+        ENUM platform "YOUTUBE|BOOSTY|TELEGRAM"
+        VARCHAR externalId
+        VARCHAR url
+        ENUM status "PENDING|SUCCESS|FAILED"
+        TIMESTAMP distributedAt
+    }
+
+    telegram_media_groups {
+        BIGINT id PK
+        BIGINT cycle_id FK
+        VARCHAR mediaGroupId
+        BIGINT telegramChatId
+        VARCHAR title
+        TIMESTAMP sentAt
+    }
+
+    telegram_media_items {
+        BIGINT id PK
+        BIGINT media_group_id FK
+        INT telegramMessageId
+        VARCHAR telegramFileId
+        VARCHAR mediaType "photo|audio|text"
+        TEXT captionOrText
+        BOOLEAN isCover
+    }
+
+    job_logs {
+        BIGINT id PK
+        BIGINT cycle_id FK
+        VARCHAR jobType
+        ENUM status "PENDING|IN_PROGRESS|COMPLETED|FAILED"
+        TEXT message
+        TIMESTAMP startedAt
+        TIMESTAMP completedAt
+    }
+
+    facebook_post_data {
+        BIGINT id PK
+        VARCHAR postId UK
+        VARCHAR groupId
+        TEXT message
+        BOOLEAN hasAttachments
+        TIMESTAMP createdTime
+        TIMESTAMP fetchedAt
+    }
+
+    %% Relationships
+    cycles         ||--o{ audio_parts          : "has"
+    cycles         ||--o{ video_parts          : "has"
+    cycles         ||--o{ image_parts          : "has"
+    cycles         ||--o{ torrent_tasks        : "has"
+    cycles         ||--o{ scraped_books        : "has"
+    cycles         ||--o{ ai_generated_content : "generates"
+    cycles         ||--o{ distribution_records : "distributed via"
+    cycles         ||--o{ telegram_media_groups: "posted as"
+    cycles         ||--o{ job_logs             : "logs"
+    audio_parts    ||--o{ distribution_records : "distributed as"
+    telegram_media_groups ||--o{ telegram_media_items : "contains"

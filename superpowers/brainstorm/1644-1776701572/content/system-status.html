@@ -1,0 +1,165 @@
+<h2>Audio Library System — Current Capability Audit</h2>
+<p class="subtitle">What's real, what's a stub, and what files flow through the system</p>
+
+<div class="section">
+  <span class="label">Services (3 total)</span>
+  <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:160px;background:#1a2a1a;border:1px solid #2d4a2d;border-radius:8px;padding:12px;">
+      <div style="color:#4caf50;font-weight:bold;font-size:13px;">● CORE BACKEND</div>
+      <div style="font-size:12px;color:#aaa;margin-top:4px;">Java 17 · Spring Boot 3.4</div>
+      <div style="font-size:12px;color:#aaa;">Port 8088</div>
+      <div style="margin-top:8px;font-size:11px;color:#ccc;">14 domain packages<br>25+ REST endpoints</div>
+    </div>
+    <div style="flex:1;min-width:160px;background:#1a1a2a;border:1px solid #2d2d4a;border-radius:8px;padding:12px;">
+      <div style="color:#2196f3;font-weight:bold;font-size:13px;">● FRONTEND</div>
+      <div style="font-size:12px;color:#aaa;margin-top:4px;">React 19 · TypeScript · Vite</div>
+      <div style="font-size:12px;color:#aaa;">Port 5173</div>
+      <div style="margin-top:8px;font-size:11px;color:#ccc;">Dashboard<br>Health monitoring</div>
+    </div>
+    <div style="flex:1;min-width:160px;background:#2a1a1a;border:1px solid #4a2d2d;border-radius:8px;padding:12px;">
+      <div style="color:#ff9800;font-weight:bold;font-size:13px;">● ML SERVICE</div>
+      <div style="font-size:12px;color:#aaa;margin-top:4px;">Python 3.7+ · PyTorch</div>
+      <div style="font-size:12px;color:#aaa;">Port 8090</div>
+      <div style="margin-top:8px;font-size:11px;color:#ccc;">Voice cloning<br>Silence detection</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <span class="label">Backend Domain Status</span>
+  <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;">
+    <thead>
+      <tr style="background:#1e1e1e;color:#888;text-align:left;">
+        <th style="padding:8px 10px;border-bottom:1px solid #333;">Domain</th>
+        <th style="padding:8px 10px;border-bottom:1px solid #333;">Endpoints</th>
+        <th style="padding:8px 10px;border-bottom:1px solid #333;">Status</th>
+        <th style="padding:8px 10px;border-bottom:1px solid #333;">Gated by flag?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #222;">
+        <td style="padding:7px 10px;color:#eee;">Audio (compress/trim/concat/duration)</td>
+        <td style="padding:7px 10px;color:#aaa;">4</td>
+        <td style="padding:7px 10px;"><span style="color:#4caf50;font-weight:bold;">✓ REAL</span></td>
+        <td style="padding:7px 10px;color:#aaa;">No (always on)</td>
+      </tr>
+      <tr style="border-bottom:1px solid #222;">
+        <td style="padding:7px 10px;color:#eee;">Library (CRUD audiobooks)</td>
+        <td style="padding:7px 10px;color:#aaa;">5</td>
+        <td style="padding:7px 10px;"><span style="color:#4caf50;font-weight:bold;">✓ REAL</span></td>
+        <td style="padding:7px 10px;color:#aaa;">No (always on)</td>
+      </tr>
+      <tr style="border-bottom:1px solid #222;">
+        <td style="padding:7px 10px;color:#eee;">Image (book cover generation)</td>
+        <td style="padding:7px 10px;color:#aaa;">1</td>
+        <td style="padding:7px 10px;"><span style="color:#4caf50;font-weight:bold;">✓ REAL</span></td>
+        <td style="padding:7px 10px;color:#aaa;">Yes (core=false)</td>
+      </tr>
+      <tr style="border-bottom:1px solid #222;">
+        <td style="padding:7px 10px;color:#eee;">Torrent (qBittorrent)</td>
+        <td style="padding:7px 10px;color:#aaa;">4</td>
+        <td style="padding:7px 10px;"><span style="color:#4caf50;font-weight:bold;">✓ REAL</span></td>
+        <td style="padding:7px 10px;color:#aaa;">Yes (core=false)</td>
+      </tr>
+      <tr style="border-bottom:1px solid #222;">
+        <td style="padding:7px 10px;color:#eee;">Search + Baza-Knig Parser</td>
+        <td style="padding:7px 10px;color:#aaa;">3</td>
+        <td style="padding:7px 10px;"><span style="color:#4caf50;font-weight:bold;">✓ REAL</span></td>
+        <td style="padding:7px 10px;color:#aaa;">Yes (core=false)</td>
+      </tr>
+      <tr style="border-bottom:1px solid #222;">
+        <td style="padding:7px 10px;color:#eee;">Telegram Bot</td>
+        <td style="padding:7px 10px;color:#aaa;">3 (+ webhook)</td>
+        <td style="padding:7px 10px;"><span style="color:#4caf50;font-weight:bold;">✓ REAL</span> <span style="color:#888;font-size:10px;">(2 deprecated)</span></td>
+        <td style="padding:7px 10px;color:#aaa;">Yes (core=false)</td>
+      </tr>
+      <tr style="border-bottom:1px solid #222;">
+        <td style="padding:7px 10px;color:#eee;">Poster — Boosty</td>
+        <td style="padding:7px 10px;color:#aaa;">1</td>
+        <td style="padding:7px 10px;"><span style="color:#4caf50;font-weight:bold;">✓ REAL</span> <span style="color:#888;font-size:10px;">(Playwright)</span></td>
+        <td style="padding:7px 10px;color:#aaa;">Yes (core=false)</td>
+      </tr>
+      <tr style="border-bottom:1px solid #222;">
+        <td style="padding:7px 10px;color:#eee;">Text description extraction</td>
+        <td style="padding:7px 10px;color:#aaa;">1</td>
+        <td style="padding:7px 10px;"><span style="color:#4caf50;font-weight:bold;">✓ REAL</span></td>
+        <td style="padding:7px 10px;color:#aaa;">Yes (core=false)</td>
+      </tr>
+      <tr style="border-bottom:1px solid #222;">
+        <td style="padding:7px 10px;color:#eee;">OpenAI image generation</td>
+        <td style="padding:7px 10px;color:#aaa;">2</td>
+        <td style="padding:7px 10px;"><span style="color:#ff9800;font-weight:bold;">⚡ PARTIAL</span></td>
+        <td style="padding:7px 10px;color:#aaa;">Yes (core=false)</td>
+      </tr>
+      <tr style="border-bottom:1px solid #222;">
+        <td style="padding:7px 10px;color:#eee;">Video creation</td>
+        <td style="padding:7px 10px;color:#aaa;">1</td>
+        <td style="padding:7px 10px;"><span style="color:#ff9800;font-weight:bold;">⚡ PARTIAL</span></td>
+        <td style="padding:7px 10px;color:#aaa;">Yes (core=false)</td>
+      </tr>
+      <tr style="border-bottom:1px solid #222;">
+        <td style="padding:7px 10px;color:#eee;">Ollama (Gemma/Llama)</td>
+        <td style="padding:7px 10px;color:#aaa;">1</td>
+        <td style="padding:7px 10px;"><span style="color:#f44336;font-weight:bold;">✗ STUB</span></td>
+        <td style="padding:7px 10px;color:#aaa;">Yes (core=false)</td>
+      </tr>
+      <tr>
+        <td style="padding:7px 10px;color:#eee;">Poster — YouTube</td>
+        <td style="padding:7px 10px;color:#aaa;">1</td>
+        <td style="padding:7px 10px;"><span style="color:#f44336;font-weight:bold;">✗ STUB</span></td>
+        <td style="padding:7px 10px;color:#aaa;">Yes (core=false)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <span class="label">File Operations — What the system handles</span>
+  <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:140px;background:#111;border:1px solid #333;border-radius:8px;padding:10px;">
+      <div style="color:#4caf50;font-size:11px;font-weight:bold;margin-bottom:6px;">INPUT / UPLOAD</div>
+      <div style="font-size:11px;color:#ccc;line-height:1.7;">
+        📥 <b>.mp3</b> — audio files<br>
+        📥 <b>.png</b> — book cover images<br>
+        📥 <b>.mp4</b> — particle overlay video<br>
+        📥 <b>.torrent</b> — via qBittorrent<br>
+        📥 <b>JSON</b> — audiobook metadata<br>
+        📥 <b>Base image</b> — for cover gen
+      </div>
+    </div>
+    <div style="flex:1;min-width:140px;background:#111;border:1px solid #333;border-radius:8px;padding:10px;">
+      <div style="color:#2196f3;font-size:11px;font-weight:bold;margin-bottom:6px;">OUTPUT / PRODUCE</div>
+      <div style="font-size:11px;color:#ccc;line-height:1.7;">
+        📤 <b>.mp3</b> — compressed / trimmed / concatenated<br>
+        📤 <b>.png</b> — book covers (N copies)<br>
+        📤 <b>.mp4</b> — generated video (partial)<br>
+        📤 <b>JSON</b> — audiobook metadata, descriptions<br>
+        📤 <b>Images</b> — DALL-E generated PNGs
+      </div>
+    </div>
+    <div style="flex:1;min-width:140px;background:#111;border:1px solid #333;border-radius:8px;padding:10px;">
+      <div style="color:#ff9800;font-size:11px;font-weight:bold;margin-bottom:6px;">EXTERNAL DISTRIBUTE</div>
+      <div style="font-size:11px;color:#ccc;line-height:1.7;">
+        🌐 <b>Boosty</b> — image+audio posts (Playwright)<br>
+        🤖 <b>Telegram</b> — audiobook files<br>
+        🔍 <b>Baza-Knig</b> — catalog scraping<br>
+        ☁️ <b>Firestore</b> — metadata sync (optional)<br>
+        ❌ <b>YouTube</b> — stub only
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <span class="label">Feature Flag Quick Reference</span>
+  <div style="font-size:12px;background:#111;border:1px solid #333;border-radius:8px;padding:12px;margin-top:8px;">
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+      <span style="background:#1a2a1a;border:1px solid #2d4a2d;border-radius:4px;padding:2px 8px;font-size:11px;color:#4caf50;font-family:monospace;">app.core.enabled=true</span>
+      <span style="color:#aaa;">→ Audio processing + Library CRUD only (safe/minimal mode)</span>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <span style="background:#2a1a1a;border:1px solid #4a2d2d;border-radius:4px;padding:2px 8px;font-size:11px;color:#f44336;font-family:monospace;">app.core.enabled=false</span>
+      <span style="color:#aaa;">→ Everything enabled: Telegram, Boosty, AI, Torrent, Parser, Search</span>
+    </div>
+  </div>
+</div>

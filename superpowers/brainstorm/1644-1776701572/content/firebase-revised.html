@@ -1,0 +1,94 @@
+<h2>Revised Architecture — Pipeline Model</h2>
+<p class="subtitle">Files are ephemeral. Firebase tracks metadata, status, and distribution. Audio never lives in cloud storage.</p>
+
+<div class="section">
+  <span class="label">Core insight: the system is a pipeline, not an archive</span>
+  <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;font-size:12px;">
+    <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:10px 14px;text-align:center;">
+      <div style="color:#888;font-size:10px;margin-bottom:4px;">TORRENT</div>
+      <div style="color:#eee;font-weight:bold;">5 GB source</div>
+    </div>
+    <div style="color:#555;font-size:16px;">→</div>
+    <div style="background:#1a2a1a;border:1px solid #2d4a2d;border-radius:8px;padding:10px 14px;text-align:center;">
+      <div style="color:#888;font-size:10px;margin-bottom:4px;">LOCAL TEMP</div>
+      <div style="color:#4caf50;font-weight:bold;">process</div>
+      <div style="color:#aaa;font-size:10px;">compress · covers · concat</div>
+    </div>
+    <div style="color:#555;font-size:16px;">→</div>
+    <div style="background:#1a1a2a;border:1px solid #2d2d4a;border-radius:8px;padding:10px 14px;text-align:center;">
+      <div style="color:#888;font-size:10px;margin-bottom:4px;">DISTRIBUTE</div>
+      <div style="color:#2196f3;font-weight:bold;">publish</div>
+      <div style="color:#aaa;font-size:10px;">Boosty · Telegram · YouTube</div>
+    </div>
+    <div style="color:#555;font-size:16px;">→</div>
+    <div style="background:#2a1a1a;border:1px solid #4a2d2d;border-radius:8px;padding:10px 14px;text-align:center;">
+      <div style="color:#888;font-size:10px;margin-bottom:4px;">CLEANUP</div>
+      <div style="color:#f44336;font-weight:bold;">delete all</div>
+      <div style="color:#aaa;font-size:10px;">local files gone</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <span class="label">What goes where</span>
+  <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:180px;background:#1a1a2a;border:1px solid #2d2d4a;border-radius:8px;padding:12px;">
+      <div style="color:#ff9800;font-weight:bold;font-size:13px;margin-bottom:8px;">🔥 Firestore</div>
+      <div style="font-size:11px;color:#ccc;line-height:2;">
+        ✓ /audiobooks — metadata<br>
+        ✓ /parsed_books — catalog<br>
+        ✓ /media_groups — collections<br>
+        ✓ /job_logs — pipeline status<br>
+        ✓ /ai_traces — AI cache<br>
+        ✓ /ai_integration_log
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:#888;">Permanent, small, fast</div>
+    </div>
+    <div style="flex:1;min-width:180px;background:#1a1a2a;border:1px solid #2d2d4a;border-radius:8px;padding:12px;">
+      <div style="color:#ff9800;font-weight:bold;font-size:13px;margin-bottom:8px;">☁️ Firebase Storage</div>
+      <div style="font-size:11px;color:#ccc;line-height:2;">
+        ✓ covers/{bookId}/*.png<br>
+        ✓ ai-images/{id}.png<br>
+        <span style="color:#f44336;">✗ NO audio files</span><br>
+        <span style="color:#f44336;">✗ NO video files</span><br>
+        <span style="color:#f44336;">✗ NO source MP3s</span>
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:#888;">Small permanent assets only (~KB each)</div>
+    </div>
+    <div style="flex:1;min-width:180px;background:#111;border:1px solid #333;border-radius:8px;padding:12px;">
+      <div style="color:#aaa;font-weight:bold;font-size:13px;margin-bottom:8px;">⏱ Local Temp Only</div>
+      <div style="font-size:11px;color:#777;line-height:2;">
+        ~ source audio (5 GB)<br>
+        ~ compressed audio (2 GB)<br>
+        ~ concatenated file<br>
+        ~ cover PNGs<br>
+        ~ generated video
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:#555;">Exists during job only. Deleted after.</div>
+    </div>
+    <div style="flex:1;min-width:180px;background:#1a2a1a;border:1px solid #2d4a2d;border-radius:8px;padding:12px;">
+      <div style="color:#4caf50;font-weight:bold;font-size:13px;margin-bottom:8px;">📤 External Platforms</div>
+      <div style="font-size:11px;color:#ccc;line-height:2;">
+        ✓ Boosty post URL<br>
+        ✓ Telegram file ID<br>
+        ✓ YouTube video ID<br>
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:#888;">Tracked in Firestore /audiobooks.distributedTo</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <span class="label">Key change to the Firestore audiobook document</span>
+  <div style="background:#111;border-radius:8px;padding:12px;margin-top:8px;font-family:monospace;font-size:11px;color:#ccc;line-height:1.8;">
+    <span style="color:#f44336;">- audioStoragePath: "audio/abc/final.mp3"</span><br>
+    <span style="color:#f44336;">- coverStoragePath: "covers/abc/1.png"</span><br>
+    <span style="color:#4caf50;">+ coverStoragePath: "covers/abc/1.png"  <span style="color:#888;">// stays — covers ARE in Storage</span></span><br>
+    <span style="color:#4caf50;">+ distributedTo: {</span><br>
+    <span style="color:#4caf50;">+   boostyUrl: "https://boosty.to/...",</span><br>
+    <span style="color:#4caf50;">+   telegramFileId: "BQACAgI...",</span><br>
+    <span style="color:#4caf50;">+   youtubeVideoId: null</span><br>
+    <span style="color:#4caf50;">+ }</span><br>
+    <span style="color:#4caf50;">+ processingStatus: "DISTRIBUTED" | "PROCESSING" | "FAILED"</span>
+  </div>
+</div>

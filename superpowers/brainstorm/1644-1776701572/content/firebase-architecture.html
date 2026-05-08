@@ -1,0 +1,87 @@
+<h2>Firebase Migration — Before vs After</h2>
+<p class="subtitle">Full target architecture: Spring Boot as processing engine, Firebase as the platform</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">CURRENT — Local Infrastructure</div>
+    <div class="mockup-body" style="font-size:12px;line-height:1.8;">
+      <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin-bottom:8px;">
+        <div style="color:#2196f3;font-weight:bold;margin-bottom:4px;">React Frontend :5173</div>
+        <div style="color:#aaa;font-size:11px;">polls backend for status</div>
+      </div>
+      <div style="text-align:center;color:#555;font-size:11px;">↓ REST API</div>
+      <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin:8px 0;">
+        <div style="color:#4caf50;font-weight:bold;margin-bottom:4px;">Spring Boot :8088</div>
+        <div style="color:#aaa;font-size:11px;">processes + reads + writes + serves data</div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <div style="flex:1;background:#2a1a1a;border:1px solid #4a2d2d;border-radius:6px;padding:8px;font-size:11px;">
+          <div style="color:#f44336;font-weight:bold;">PostgreSQL</div>
+          <div style="color:#aaa;">audiobook<br>parsed_book<br>media_group</div>
+        </div>
+        <div style="flex:1;background:#2a1a1a;border:1px solid #4a2d2d;border-radius:6px;padding:8px;font-size:11px;">
+          <div style="color:#f44336;font-weight:bold;">Local Disk</div>
+          <div style="color:#aaa;">audio/<br>image/<br>video/<br>temp/</div>
+        </div>
+      </div>
+      <div style="margin-top:8px;padding:6px;background:#1a1a1a;border-radius:6px;font-size:10px;color:#666;">
+        Requires: PostgreSQL server, local paths, FFmpeg on PATH
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">TARGET — Firebase Platform</div>
+    <div class="mockup-body" style="font-size:12px;line-height:1.8;">
+      <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin-bottom:8px;">
+        <div style="color:#2196f3;font-weight:bold;margin-bottom:4px;">React Frontend :5173</div>
+        <div style="color:#aaa;font-size:11px;">reads Firestore directly (real-time job status)</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin:4px 0;">
+        <div style="flex:1;text-align:center;color:#555;font-size:10px;">↓ triggers only</div>
+        <div style="flex:1;text-align:center;color:#ff9800;font-size:10px;">↔ SDK direct</div>
+      </div>
+      <div style="background:#1a2a1a;border-radius:6px;padding:10px;margin:4px 0;">
+        <div style="color:#4caf50;font-weight:bold;margin-bottom:4px;">Spring Boot :8088</div>
+        <div style="color:#aaa;font-size:11px;">processing engine only — FFmpeg, Playwright, AI<br>downloads from Storage → processes → uploads back</div>
+      </div>
+      <div style="text-align:center;color:#555;font-size:11px;margin:4px 0;">↕ Firebase Admin SDK</div>
+      <div style="background:#1a1a2a;border:1px solid #2d2d4a;border-radius:6px;padding:10px;">
+        <div style="color:#ff9800;font-weight:bold;margin-bottom:6px;">🔥 Firebase Platform</div>
+        <div style="display:flex;gap:6px;">
+          <div style="flex:1;background:#111;border-radius:4px;padding:6px;font-size:10px;">
+            <div style="color:#f5a623;font-weight:bold;">Firestore</div>
+            <div style="color:#aaa;">/audiobooks<br>/parsed_books<br>/media_groups<br>/job_logs</div>
+          </div>
+          <div style="flex:1;background:#111;border-radius:4px;padding:6px;font-size:10px;">
+            <div style="color:#f5a623;font-weight:bold;">Storage</div>
+            <div style="color:#aaa;">audio/{id}/<br>covers/{id}/<br>video/{id}/<br>temp/{jobId}/</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:8px;padding:6px;background:#1a2a1a;border-radius:6px;font-size:10px;color:#4caf50;">
+        Requires: Firebase project + service account only
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:16px;">
+  <span class="label">What gets removed</span>
+  <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;font-size:11px;">
+    <div style="background:#2a1a1a;border:1px solid #4a2d2d;border-radius:6px;padding:8px 12px;color:#f44336;">✗ PostgreSQL dependency</div>
+    <div style="background:#2a1a1a;border:1px solid #4a2d2d;border-radius:6px;padding:8px 12px;color:#f44336;">✗ Flyway migrations</div>
+    <div style="background:#2a1a1a;border:1px solid #4a2d2d;border-radius:6px;padding:8px 12px;color:#f44336;">✗ Spring Data JPA / Hibernate</div>
+    <div style="background:#2a1a1a;border:1px solid #4a2d2d;border-radius:6px;padding:8px 12px;color:#f44336;">✗ ProperityConfig (local paths)</div>
+    <div style="background:#2a1a1a;border:1px solid #4a2d2d;border-radius:6px;padding:8px 12px;color:#f44336;">✗ AudiobookRepository (JPA)</div>
+    <div style="background:#2a1a1a;border:1px solid #4a2d2d;border-radius:6px;padding:8px 12px;color:#f44336;">✗ H2 test database</div>
+    <div style="background:#2a1a1a;border:1px solid #4a2d2d;border-radius:6px;padding:8px 12px;color:#f44336;">✗ Local file path config</div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;font-size:11px;">
+    <div style="background:#1a2a1a;border:1px solid #2d4a2d;border-radius:6px;padding:8px 12px;color:#4caf50;">✓ FirebaseConfig (already exists)</div>
+    <div style="background:#1a2a1a;border:1px solid #2d4a2d;border-radius:6px;padding:8px 12px;color:#4caf50;">✓ FirestoreSyncService (extend)</div>
+    <div style="background:#1a2a1a;border:1px solid #2d4a2d;border-radius:6px;padding:8px 12px;color:#4caf50;">+ FirebaseStorageService (new)</div>
+    <div style="background:#1a2a1a;border:1px solid #2d4a2d;border-radius:6px;padding:8px 12px;color:#4caf50;">+ Job status in Firestore (new)</div>
+    <div style="background:#1a2a1a;border:1px solid #2d4a2d;border-radius:6px;padding:8px 12px;color:#4caf50;">+ Firebase JS SDK in frontend (new)</div>
+  </div>
+</div>
