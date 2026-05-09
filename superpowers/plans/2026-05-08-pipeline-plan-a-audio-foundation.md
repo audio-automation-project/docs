@@ -4,7 +4,7 @@
 
 **Goal:** Wire the complete audio processing chain (noise removal → trim → concatenate → compress → duration) as RabbitMQ-dispatched `job_queue` jobs with a `PipelineOrchestrator` that advances audio phases by querying DB state.
 
-**Architecture:** Each audio job type owns exactly one `audio_part_id` FK. A `PipelineOrchestrator` checks completed-job counts against expected counts per cycle and emits the next job batch. Audio runners follow a strict pattern: verify PENDING → mark IN_PROGRESS → do work → write `audio_stage` row → mark COMPLETED/FAILED. Python microservices (Demucs, Whisper) are called synchronously via HTTP from runners.
+**Architecture:** Globally, each `JobType` is associated with **one primary owner FK** pointing at the row that job acts on (other job families may use `distribution_id`, cycle-scoped keys, etc.—see schema/ER docs). **For this Plan A audio spine**, the audio-stage job types use **`audio_part_id`** as that primary owner. A `PipelineOrchestrator` checks completed-job counts against expected counts per cycle and emits the next job batch. Audio runners follow a strict pattern: verify PENDING → mark IN_PROGRESS → do work → write `audio_stage` row → mark COMPLETED/FAILED. Python microservices (Demucs, Whisper) are called synchronously via HTTP from runners.
 
 **Tech Stack:** Spring Boot 3.4, Java 17, Spring AMQP, Flyway, JPA, FFmpeg/JavaCV (`FFmpegOperations`), `RestTemplate` (HTTP to Python microservices).
 
