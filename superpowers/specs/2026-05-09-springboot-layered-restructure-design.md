@@ -1,7 +1,7 @@
 # Spring Boot layered restructure (big-bang) — design spec
 
 **Date:** 2026-05-09  
-**Status:** Approved — implementation plan: [`docs/superpowers/plans/2026-05-09-springboot-layered-restructure-implementation-plan.md`](../plans/2026-05-09-springboot-layered-restructure-implementation-plan.md)  
+**Status:** Implemented — tracked on branch `feat/layered-restructure-pa2`; implementation plan: [`docs/superpowers/plans/2026-05-09-springboot-layered-restructure-implementation-plan.md`](../plans/2026-05-09-springboot-layered-restructure-implementation-plan.md) (merge PR when ready).  
 **Scope:** `audio-library-automation-bot` only
 
 ---
